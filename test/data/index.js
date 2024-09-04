@@ -18,6 +18,7 @@ import * as Roles from './roles';
 import * as Sessions from './sessions';
 import * as Submissions from './submissions';
 import * as Users from './users';
+import * as UserPreferences from './userpreferences';
 import seed from './seed';
 import { resetDataStores } from './data-store';
 
@@ -42,7 +43,8 @@ const testData = Object.assign( // eslint-disable-line prefer-object-spread
   Roles,
   Sessions,
   Submissions,
-  Users
+  Users,
+  UserPreferences,
 );
 
 testData.seed = seed;

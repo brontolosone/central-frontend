@@ -73,6 +73,7 @@ describe('AccountLogin', () => {
       .request(submit)
       .respondWithData(() => testData.sessions.createNew())
       .respondWithData(() => testData.extendedUsers.first())
+      .respondWithData(() => testData.blankUserPreferences)
       .respondFor('/', { users: false })
       .afterResponses(app => {
         const { requestData } = app.vm.$container;
