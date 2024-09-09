@@ -19,6 +19,7 @@ describe('Navbar', () => {
           });
         })
         .restoreSession()
+        .respondWithData(() => testData.userPreferences.createNew())
         .respondFor('/', { users: false })
         .afterResponses(app => {
           wasHidden.should.be.true;
