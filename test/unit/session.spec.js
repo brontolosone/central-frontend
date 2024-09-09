@@ -75,12 +75,16 @@ describe('util/session', () => {
         // Specifying 'none' so that the request for the analytics config is not
         // sent.
         testData.extendedUsers.createPast(1, { role: 'none' });
+        testData.userPreferences.createNew();
       });
 
       it('sends the correct request', () => {
         const container = createTestContainer({
           router: mockRouter(),
-          requestData: { session: testData.sessions.createNew({ token: 'foo' }) }
+          requestData: {
+            session: testData.sessions.createNew({ token: 'foo' }),
+            userPreferences: testData.userPreferences.createNew(),
+          },
         });
         return mockHttp(container)
           .request(() => logIn(container, true))
@@ -102,6 +106,7 @@ describe('util/session', () => {
         return mockHttp(container)
           .request(() => logIn(container, true))
           .respondWithData(() => testData.extendedUsers.first())
+          .respondWithData(() => testData.userPreferences.createNew())
           .afterResponse(() => {
             currentUser.dataExists.should.be.true;
           });
@@ -114,7 +119,8 @@ describe('util/session', () => {
         });
         return mockHttp(container)
           .request(() => logIn(container, true).should.be.fulfilled)
-          .respondWithData(() => testData.extendedUsers.first());
+          .respondWithData(() => testData.extendedUsers.first())
+          .respondWithData(() => testData.userPreferences.createNew());
       });
     });
 
@@ -131,6 +137,7 @@ describe('util/session', () => {
         return mockHttp(container)
           .request(() => logIn(container, true))
           .respondWithData(() => testData.extendedUsers.first())
+          .respondWithData(() => testData.userPreferences.createNew())
           .afterResponse(() => {
             localStorage.getItem('sessionExpires').should.equal('86400000');
           });
@@ -145,6 +152,7 @@ describe('util/session', () => {
         return mockHttp(container)
           .request(() => logIn(container, false))
           .respondWithData(() => testData.extendedUsers.first())
+          .respondWithData(() => testData.userPreferences.createNew())
           .afterResponse(() => {
             should.not.exist(localStorage.getItem('sessionExpires'));
           });
@@ -175,7 +183,10 @@ describe('util/session', () => {
         testData.extendedUsers.createPast(1, { role: 'admin' });
         const container = createTestContainer({
           router: mockRouter(),
-          requestData: { session: testData.sessions.createNew({ token: 'foo' }) },
+          requestData: {
+            session: testData.sessions.createNew({ token: 'foo' }),
+            userPreferences: testData.userPreferences.createNew(),
+          },
           config: { showsAnalytics: false }
         });
         return mockHttp(container)
@@ -197,7 +208,10 @@ describe('util/session', () => {
       testData.extendedUsers.createPast(1, { role: 'none' });
       const container = createTestContainer({
         router: mockRouter(),
-        requestData: { session: testData.sessions.createNew({ token: 'foo' }) }
+        requestData: {
+          session: testData.sessions.createNew({ token: 'foo' }),
+          userPreferences: testData.userPreferences.createNew(),
+        },
       });
       return mockHttp(container)
         .request(() => logIn(container, true))
@@ -221,6 +235,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .complete()
         .request(() => logOut(container, false).should.be.fulfilled)
         .respondWithSuccess();
@@ -237,6 +252,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .afterResponse(() => {
           // Set data that is not cleared after a route change.
           setRequestData(requestData, {
@@ -287,6 +303,7 @@ describe('util/session', () => {
         return mockHttp(container)
           .request(() => logIn(container, true))
           .respondWithData(() => testData.extendedUsers.first())
+          .respondWithData(() => testData.userPreferences.createNew())
           .complete()
           // Send a request that would not be canceled by a route change.
           .request(() => roles.request({ url: '/v1/roles' }).catch(noop))
@@ -311,6 +328,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .complete()
         .request(() => logOut(container, false))
         .respondWithSuccess()
@@ -386,6 +404,7 @@ describe('util/session', () => {
         return mockHttp(container)
           .request(() => logIn(container, true))
           .respondWithData(() => testData.extendedUsers.first())
+          .respondWithData(() => testData.userPreferences.createNew())
           .complete()
           .request(() => logOut(container, false).should.be.rejected)
           .respondWithProblem();
@@ -400,6 +419,7 @@ describe('util/session', () => {
         return mockHttp(container)
           .request(() => logIn(container, true))
           .respondWithData(() => testData.extendedUsers.first())
+          .respondWithData(() => testData.userPreferences.createNew())
           .complete()
           .request(() => logOut(container, false).catch(noop))
           .respondWithProblem({
@@ -422,6 +442,7 @@ describe('util/session', () => {
         return mockHttp(container)
           .request(() => logIn(container, true))
           .respondWithData(() => testData.extendedUsers.first())
+          .respondWithData(() => testData.userPreferences.createNew())
           .complete()
           .request(() => logOut(container, false).should.be.fulfilled)
           .respondWithProblem(401.2);
@@ -435,6 +456,7 @@ describe('util/session', () => {
         return mockHttp(container)
           .request(() => logIn(container, true))
           .respondWithData(() => testData.extendedUsers.first())
+          .respondWithData(() => testData.userPreferences.createNew())
           .complete()
           .request(() => logOut(container, false).should.be.fulfilled)
           .respondWithProblem(403.1);
@@ -459,6 +481,7 @@ describe('util/session', () => {
               }
             })
             .restoreSession()
+            .respondWithData(() => testData.userPreferences.createNew())
             .respondWithProblem(401.2));
 
         it('does not navigate to /login', () => {
@@ -471,6 +494,7 @@ describe('util/session', () => {
               }
             })
             .restoreSession()
+            .respondWithData(() => testData.userPreferences.createNew())
             .respondWithProblem(401.2)
             .afterResponses(app => {
               app.vm.$route.path.should.equal('/reset-password');
@@ -505,6 +529,7 @@ describe('util/session', () => {
             })
             .respondWithData(() => testData.sessions.createNew())
             .respondWithData(() => testData.extendedUsers.first())
+            .respondWithData(() => testData.userPreferences.createNew())
             .respondWithProblem(401.2));
 
         it('does not change the route', () =>
@@ -523,6 +548,7 @@ describe('util/session', () => {
             })
             .respondWithData(() => testData.sessions.createNew())
             .respondWithData(() => testData.extendedUsers.first())
+            .respondWithData(() => testData.userPreferences.createNew())
             .respondWithProblem(401.2)
             .afterResponses(app => {
               app.vm.$route.fullPath.should.equal('/login?next=%2Fusers');
@@ -535,7 +561,10 @@ describe('util/session', () => {
     it('logs out', () => {
       const container = createTestContainer({
         router: mockRouter(),
-        requestData: { session: testData.sessions.createNew() }
+        requestData: {
+          session: testData.sessions.createNew(),
+          userPreferences: testData.userPreferences.createNew(),
+        },
       });
       const { session } = container.requestData;
       return mockHttp(container)
@@ -550,7 +579,10 @@ describe('util/session', () => {
     it('returns a rejected promise', () => {
       const container = createTestContainer({
         router: mockRouter(),
-        requestData: { session: testData.sessions.createNew() }
+        requestData: {
+          session: testData.sessions.createNew(),
+          userPreferences: testData.userPreferences.createNew(),
+        },
       });
       return mockHttp(container)
         .request(() => logIn(container, true).should.be.rejected)
@@ -571,6 +603,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .complete()
         .testNoRequest(() => {
           clock.tick(239000);
@@ -591,6 +624,7 @@ describe('util/session', () => {
       return load('/', {}, false)
         .restoreSession()
         .respondFor('/', { users: false })
+        .respondWithData(() => testData.userPreferences.createNew())
         .complete()
         .request(() => {
           clock.tick(15000);
@@ -618,6 +652,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .complete()
         .request(() => {
           clock.tick(240000);
@@ -641,6 +676,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .complete()
         .request(() => logOut(container, false))
         .respondWithSuccess()
@@ -658,7 +694,8 @@ describe('util/session', () => {
       const container = createTestContainer({
         router: mockRouter(),
         requestData: {
-          session: testData.sessions.createNew({ expiresAt: '1970-01-01T00:05:00Z' })
+          session: testData.sessions.createNew({ expiresAt: '1970-01-01T00:05:00Z' }),
+          userPreferences: testData.userPreferences.createNew(),
         }
       });
       return mockHttp(container)
@@ -683,6 +720,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .afterResponse(() => {
           clock.tick(300000);
           return logOut(container, false).should.be.fulfilled;
@@ -703,6 +741,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .afterResponse(() => {
           clock.tick(119000);
           alert.state.should.be.false;
@@ -725,6 +764,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .afterResponse(() => {
           clock.tick(120000);
           alert.state.should.be.true;
@@ -742,6 +782,7 @@ describe('util/session', () => {
           return logIn(container, true);
         })
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .afterResponse(() => {
           clock.tick(120000);
           alert.state.should.be.true;
@@ -760,6 +801,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .complete()
         .request(() => logOut(container, false))
         .respondWithSuccess()
@@ -782,6 +824,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .complete()
         .request(() => {
           window.dispatchEvent(new StorageEvent('storage', {
@@ -805,6 +848,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .complete()
         .request(() => {
           window.dispatchEvent(new StorageEvent('storage', {
@@ -844,6 +888,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .complete()
         .request(() => logOut(container, false))
         .respondWithSuccess()
@@ -866,6 +911,7 @@ describe('util/session', () => {
       return mockHttp(container)
         .request(() => logIn(container, true))
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .complete()
         .testNoRequest(() => {
           window.dispatchEvent(new StorageEvent('storage', {
@@ -903,6 +949,7 @@ describe('util/session', () => {
         })
         .respondWithData(() => testData.sessions.createNew())
         .respondWithData(() => user)
+        .respondWithData(() => testData.userPreferences.createNew())
         .respondFor('/')
         .afterResponses(app => {
           correctBeforeNavigation.should.be.true;
