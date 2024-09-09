@@ -14,6 +14,7 @@ const responseDefaults = {
   roles: () => testData.standardRoles.sorted(),
   project: () => testData.extendedProjects.last(),
   dataset: () => testData.extendedDatasets.last(),
+  userPreferences: () => testData.userPreferences.createNew(),
 
   // useProject()
   forms: () => testData.extendedForms.sorted(),

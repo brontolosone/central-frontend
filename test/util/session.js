@@ -30,6 +30,10 @@ mockLogin.setRequestData = (requestData) => {
       status: 200,
       data: clone(testData.extendedUsers.first())
     });
+    requestData.userPreferences.setFromResponse({
+      status: 200,
+      data: testData.userPreferences.createNew(),
+    });
   }
 };
 
