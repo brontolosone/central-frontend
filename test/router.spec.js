@@ -69,11 +69,13 @@ describe('createCentralRouter()', () => {
         testData.extendedUsers.createPast(1, { role: 'none' });
         return load('/account/edit', {}, false)
           .restoreSession()
+          .respondWithData(() => testData.userPreferences.createNew())
           .respondFor('/account/edit')
           .testRequests([
             { url: '/v1/sessions/restore' },
             { url: '/v1/users/current', extended: true },
-            null
+            null,
+            null,
           ]);
       });
 
@@ -81,6 +83,7 @@ describe('createCentralRouter()', () => {
         testData.extendedUsers.createPast(1, { role: 'none' });
         return load('/account/edit', {}, false)
           .restoreSession()
+          .respondWithData(() => testData.userPreferences.createNew())
           .respondFor('/account/edit')
           .afterResponses(app => {
             app.vm.$route.path.should.equal('/account/edit');
@@ -98,6 +101,7 @@ describe('createCentralRouter()', () => {
           testData.sessions.createPast(1, { expiresAt: '1970-01-01T00:05:00Z' });
           return load('/account/edit', { container }, false)
             .restoreSession()
+            .respondWithData(() => testData.userPreferences.createNew())
             .respondFor('/account/edit')
             .afterResponses(() => {
               localStorage.getItem('sessionExpires').should.equal('300000');
@@ -111,6 +115,7 @@ describe('createCentralRouter()', () => {
           localStorage.setItem('sessionExpires', '299999');
           return load('/account/edit', { container }, false)
             .restoreSession()
+            .respondWithData(() => testData.userPreferences.createNew())
             .respondFor('/account/edit')
             .afterResponses(() => {
               localStorage.getItem('sessionExpires').should.equal('300000');
@@ -1198,6 +1203,7 @@ describe('createCentralRouter()', () => {
         .respondWithData(() => session)
         .respondWithData(() => ({})) // config
         .respondWithData(() => user)
+        .respondWithData(() => testData.userPreferences.createNew())
         .respondFor('/', { users: false })
         .beforeAnyResponse(app => {
           app.vm.$container.requestData.config.dataExists.should.be.false;
@@ -1206,6 +1212,7 @@ describe('createCentralRouter()', () => {
           { url: '/v1/sessions/restore' },
           { url: '/client-config.json' },
           { url: '/v1/users/current', extended: true },
+          { url: '/v1/user-preferences/current' },
           { url: '/v1/projects?forms=true&datasets=true' }
         ])
         .afterResponses(app => {
