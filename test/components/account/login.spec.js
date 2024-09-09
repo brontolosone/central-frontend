@@ -73,6 +73,7 @@ describe('AccountLogin', () => {
       .request(submit)
       .respondWithData(() => testData.sessions.createNew())
       .respondWithData(() => testData.extendedUsers.first())
+      .respondWithData(() => testData.userPreferences.createNew())
       .respondFor('/', { users: false })
       .afterResponses(app => {
         const { requestData } = app.vm.$container;
@@ -95,6 +96,7 @@ describe('AccountLogin', () => {
       })
       .respondWithData(() => testData.sessions.createNew())
       .respondWithData(() => testData.extendedUsers.first())
+      .respondWithData(() => testData.userPreferences.createNew())
       .respondFor('/', { users: false });
   });
 
@@ -106,6 +108,7 @@ describe('AccountLogin', () => {
       .request(submit)
       .respondWithData(() => testData.sessions.createNew())
       .respondWithData(() => testData.extendedUsers.first())
+      .respondWithData(() => testData.userPreferences.createNew())
       .respondFor('/', { users: false })
       .afterResponses(app => {
         app.should.alert('info', (message) => {
@@ -176,6 +179,7 @@ describe('AccountLogin', () => {
         .request(submit)
         .respondWithData(() => testData.sessions.createNew())
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .respondFor('/account/edit')
         .afterResponses(app => {
           app.vm.$route.path.should.equal('/account/edit');
@@ -193,6 +197,7 @@ describe('AccountLogin', () => {
         .request(submit)
         .respondWithData(() => testData.sessions.createNew())
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .respondFor('/', { users: false })
         .afterResponses(app => {
           app.vm.$route.path.should.equal('/');
@@ -204,6 +209,7 @@ describe('AccountLogin', () => {
       return load('/login?next=%2Faccount%2Fedit')
         .restoreSession()
         .respondFor('/', { users: false })
+        .respondWithData(() => testData.userPreferences.createNew())
         .afterResponses(app => {
           app.vm.$route.path.should.equal('/');
         });
@@ -235,6 +241,7 @@ describe('AccountLogin', () => {
         })
         .respondWithData(() => testData.sessions.createNew())
         .respondWithData(() => testData.extendedUsers.first())
+        .respondWithData(() => testData.userPreferences.createNew())
         .afterResponses(app => {
           app.find('#navbar-links').exists().should.be.false;
           app.get('#navbar-actions a').text().should.equal('Not logged in');
