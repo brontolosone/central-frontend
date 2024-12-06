@@ -84,8 +84,8 @@ const removeSessionFromStorage = () => {
   case, setting and removing sessionExpires here will trigger a storage event in
   the other tab, though that should have no effect.
   */
-  localStore.setItem('sessionExpires', '0');
-  localStore.removeItem('sessionExpires');
+  // localStore.setItem('sessionExpires', '0');
+  // localStore.removeItem('sessionExpires');
 };
 
 const requestLogout = ({ i18n, requestData, alert, http }) => {
@@ -195,13 +195,13 @@ const logOutAfterStorageChange = (container) => (event) => {
 
 export const useSessions = () => {
   const container = inject('container');
-  const intervalId = setInterval(logOutBeforeSessionExpires(container), 15000);
-  const storageHandler = logOutAfterStorageChange(container);
-  window.addEventListener('storage', storageHandler);
-  onBeforeUnmount(() => {
-    clearInterval(intervalId);
-    window.removeEventListener('storage', storageHandler);
-  });
+  // const intervalId = setInterval(logOutBeforeSessionExpires(container), 15000);
+  // const storageHandler = logOutAfterStorageChange(container);
+  // window.addEventListener('storage', storageHandler);
+  // onBeforeUnmount(() => {
+  //   clearInterval(intervalId);
+  //   window.removeEventListener('storage', storageHandler);
+  // });
 
   /* visiblyLoggedIn.value is `true` if the user not only has all the data from
   login, but is also visibly logged in. An example of when the user has data,
