@@ -102,6 +102,7 @@ export default {
   },
   methods: {
     verifyNewSession() {
+      return true;
       const sessionExpires = localStore.getItem('sessionExpires');
       const newSession = sessionExpires == null ||
         Number.parseInt(sessionExpires, 10) < Date.now();
