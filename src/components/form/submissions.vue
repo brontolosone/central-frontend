@@ -19,7 +19,7 @@ except according to the terms contained in the LICENSE file.
           <span class="icon-plus-circle"></span>{{ $t('action.createSubmission') }}
         </enketo-fill>
         <template v-if="deletedSubmissionCount.dataExists">
-          <button v-if="canUpdate && (deletedSubmissionCount.value > 0 || deleted)" type="button"
+          <button v-if="canDelete && (deletedSubmissionCount.value > 0 || deleted)" type="button"
             class="btn toggle-deleted-submissions" :class="{ 'btn-danger': deleted, 'btn-link': !deleted }"
             @click="toggleDeleted">
             <span class="icon-trash"></span>{{ $tcn('action.toggleDeletedSubmissions', deletedSubmissionCount.value) }}
@@ -98,15 +98,15 @@ export default {
       })
     });
 
-    const canUpdate = computed(() => project.dataExists && project.permits('submission.update'));
+    const canDelete = computed(() => project.dataExists && project.permits('submission.delete'));
 
     watchEffect(() => {
-      if (deleted.value && project.dataExists && !canUpdate.value) router.push('/');
+      if (deleted.value && project.dataExists && !canDelete.value) router.push('/');
     });
 
     return {
       project, form, keys, analyzeModal: modalData(),
-      deletedSubmissionCount, canUpdate, deleted
+      deletedSubmissionCount, canDelete, deleted
     };
   },
   computed: {
@@ -177,19 +177,23 @@ export default {
 @import '../../assets/scss/variables';
 
 #odata-data-access { float: right; }
+
 #form-submissions {
   .toggle-deleted-submissions {
-    margin-left: 5px;
+    margin-left: 8px;
 
-    &.btn-link{
+    &.btn-link {
       color: $color-danger;
     }
+
+    .icon-close { margin-left: 3px; }
   }
+
   .purge-description {
     display: inline;
     position: relative;
     top: -5px;
-    left: 5px;
+    left: 12px;
     font-size: 14px;
   }
 }
@@ -215,16 +219,36 @@ export default {
     "analyzeDisabled": "Přístup k OData není dostupný kvůli šifrování formuláře"
   },
   "de": {
-    "analyzeDisabled": "OData-Zugriff ist wegen Formularverschlüsselung nicht verfügbar."
+    "analyzeDisabled": "OData-Zugriff ist wegen Formularverschlüsselung nicht verfügbar.",
+    "analyzeDisabledDeletedData": "Der OData-Zugriff ist für gelöschte Übermittlungen nicht verfügbar",
+    "purgeDescription": "Übermittlungen und übermittlungsbezogene Daten werden nach 30 Tagen im Papierkorb gelöscht.",
+    "action": {
+      "toggleDeletedSubmissions": "{count}gelöscht Übermittlung | {count} gelöschte Übermittlungen"
+    }
   },
   "es": {
-    "analyzeDisabled": "El acceso a OData no está disponible debido al cifrado de Formulario"
+    "analyzeDisabled": "El acceso a OData no está disponible debido al cifrado de Formulario",
+    "analyzeDisabledDeletedData": "El acceso OData no está disponible para los envíos eliminados",
+    "purgeDescription": "Los envíos y los datos relacionados con ellos se eliminan después de 30 días en la papelera.",
+    "action": {
+      "toggleDeletedSubmissions": "{count} Envío eliminado | {count} Envíos eliminados | {count} Envíos eliminados"
+    }
   },
   "fr": {
-    "analyzeDisabled": "L'accès à OData n'est pas disponible en raison du chiffrement du formulaire"
+    "analyzeDisabled": "L'accès à OData n'est pas disponible en raison du chiffrement du formulaire",
+    "analyzeDisabledDeletedData": "L'accès OData n'est pas possible pour les soumissions supprimées.",
+    "purgeDescription": "Les soumissions et les données associées sont supprimées aprés 30 jours passés dans la corbeille.",
+    "action": {
+      "toggleDeletedSubmissions": "{count} Soumission supprimée | {count} Soumissions supprimées | {count} Soumission supprimée"
+    }
   },
   "it": {
-    "analyzeDisabled": "L'accesso OData non è disponibile a causa della crittografia del formulario"
+    "analyzeDisabled": "L'accesso OData non è disponibile a causa della crittografia del formulario",
+    "analyzeDisabledDeletedData": "L'accesso OData non è disponibile per gli Invii cancellati",
+    "purgeDescription": "Gli invii e i dati relativi agli invii vengono eliminati dopo 30 giorni nel Cestino.",
+    "action": {
+      "toggleDeletedSubmissions": "{count} invio cancellato | {count} invii cancellati | {count} invii cancellati"
+    }
   },
   "sw": {
     "analyzeDisabled": "Ufikiaji wa OData haupatikani kwa sababu ya usimbaji fiche wa Fomu"

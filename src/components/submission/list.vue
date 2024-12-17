@@ -14,6 +14,17 @@ except according to the terms contained in the LICENSE file.
     <loading :state="fields.initiallyLoading"/>
     <div v-show="selectedFields != null">
       <div id="submission-list-actions">
+        <template v-if="draft">
+          <button id="submission-list-test-on-device" type="button"
+            class="btn btn-default" @click="$emit('toggle-qr', $event.target)">
+            <span class="icon-qrcode"></span>{{ $t('action.testOnDevice') }}
+          </button>
+          <enketo-fill v-if="formVersion.dataExists"
+            id="submission-list-test-in-browser" :form-version="formVersion"
+            btn="default">
+            <span class="icon-plus-circle"></span>{{ $t('action.testInBrowser') }}
+          </enketo-fill>
+        </template>
         <form class="form-inline" @submit.prevent>
           <submission-filters v-if="!draft" v-model:submitterId="submitterIds"
             v-model:submissionDate="submissionDateRange"
@@ -22,13 +33,13 @@ except according to the terms contained in the LICENSE file.
           <submission-field-dropdown
             v-if="selectedFields != null && fields.selectable.length > 11"
             v-model="selectedFields"/>
-          <button id="submission-list-refresh-button" type="button"
-            class="btn btn-default" :aria-disabled="refreshing"
-            @click="fetchChunk(false, true)">
-            <span class="icon-refresh"></span>{{ $t('action.refresh') }}
-            <spinner :state="refreshing"/>
-          </button>
         </form>
+        <button id="submission-list-refresh-button" type="button"
+          class="btn btn-default" :aria-disabled="refreshing"
+          @click="fetchChunk(false, true)">
+          <span class="icon-refresh"></span>{{ $t('action.refresh') }}
+          <spinner :state="refreshing"/>
+        </button>
         <submission-download-button :form-version="formVersion"
           :aria-disabled="deleted" v-tooltip.aria-describedby="deleted ? $t('downloadDisabled') : null"
           :filtered="odataFilter != null && !deleted" @download="downloadModal.show()"/>
@@ -75,6 +86,7 @@ except according to the terms contained in the LICENSE file.
 import { DateTime } from 'luxon';
 import { shallowRef, watch, watchEffect, reactive } from 'vue';
 
+import EnketoFill from '../enketo/fill.vue';
 import Loading from '../loading.vue';
 import Spinner from '../spinner.vue';
 import OdataLoadingMessage from '../odata-loading-message.vue';
@@ -101,6 +113,7 @@ import { useRequestData } from '../../request-data';
 export default {
   name: 'SubmissionList',
   components: {
+    EnketoFill,
     Loading,
     Spinner,
     SubmissionDelete,
@@ -134,7 +147,7 @@ export default {
       default: (loaded) => (loaded < 1000 ? 250 : 1000)
     }
   },
-  emits: ['fetch-keys', 'fetch-deleted-count'],
+  emits: ['fetch-keys', 'fetch-deleted-count', 'toggle-qr'],
   setup(props) {
     const { form, keys, resourceView, odata, submitters, deletedSubmissionCount } = useRequestData();
     const formVersion = props.draft
@@ -196,9 +209,9 @@ export default {
     const { request } = useRequest();
 
     return {
-      form, keys, fields, formVersion, odata, submitters,
+      form, keys, fields, formVersion, odata, submitters, deletedSubmissionCount,
       submitterIds, submissionDateRange, reviewStates, allReviewStates,
-      request, deletedSubmissionCount
+      request
     };
   },
   data() {
@@ -472,34 +485,58 @@ export default {
 }
 
 #submission-list-actions {
-  align-items: baseline;
+  align-items: center;
   display: flex;
   flex-wrap: wrap-reverse;
+  // This results in 10px of space between elements on the row, as well as 10px
+  // between rows if elements start wrapping. The main example of that is that
+  // the download button can wrap above the other actions if the viewport is not
+  // wide enough.
+  gap: 10px;
+  margin-bottom: 30px;
 
-  // If there are filters, then there is already no left margin. But if there
-  // aren't filters (in the case of a form draft), then we need to remove the
-  // left margin.
-  form > :first-child { margin-left: 0; }
+  .form-inline {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
 }
 #submission-field-dropdown {
+  // This is the entire spacing between the dropdown and the filters to its
+  // left. Since they're both child elements of the form, the flexbox gap does
+  // not apply to them.
   margin-left: 15px;
+  // Additional space between the dropdown and the refresh button
   margin-right: 5px;
 }
-#submission-list-refresh-button {
-  margin-left: 10px;
-  margin-right: 5px;
-}
-#submission-download-button {
-  // The bottom margin is for if the download button wraps above the other
-  // actions.
-  margin-bottom: 10px;
-  margin-left: auto;
+#submission-download-button { margin-left: auto; }
+
+// Adjust the spacing between actions on the draft testing page.
+#submission-list-test-in-browser {
+  ~ .form-inline {
+    // It is possible for .form-inline to be :empty, but we still render it so
+    // that the buttons that follow it are shown on the righthand side of the
+    // page.
+    margin-left: auto;
+
+    #submission-field-dropdown {
+      // There are no filters, so no need for margin-left.
+      margin-left: 0;
+      // Further increase the space between the dropdown and the refresh button.
+      margin-right: 10px;
+    }
+  }
+
+  ~ #submission-download-button { margin-left: 0; }
 }
 </style>
 
 <i18n lang="json5">
 {
   "en": {
+    "action": {
+      "testOnDevice": "Test on device",
+      "testInBrowser": "Test in browser"
+    },
     "noMatching": "There are no matching Submissions.",
     "downloadDisabled": "Download is unavailable for deleted Submissions",
     "filterDisabledMessage": "Filtering is unavailable for deleted Submissions",
@@ -517,19 +554,55 @@ export default {
     "noMatching": "Neexistují žádné odpovídající příspěvky."
   },
   "de": {
-    "noMatching": "Es gibt keine passenden Übermittlungen."
+    "action": {
+      "testOnDevice": "Test am Gerät",
+      "testInBrowser": "Test im Browser"
+    },
+    "noMatching": "Es gibt keine passenden Übermittlungen.",
+    "downloadDisabled": "Der Download ist für gelöschte Übermittlungen nicht verfügbar",
+    "filterDisabledMessage": "Filterung ist für gelöschte Übermittlungen nicht verfügbar",
+    "deletedSubmission": {
+      "emptyTable": "Es gibt keine gelöschten Übermittlungen."
+    }
   },
   "es": {
-    "noMatching": "No hay envíos coincidentes."
+    "action": {
+      "testOnDevice": "Prueba en el dispositivo",
+      "testInBrowser": "Prueba en el navegador"
+    },
+    "noMatching": "No hay envíos coincidentes.",
+    "downloadDisabled": "La descarga no está disponible para los envíos eliminados",
+    "filterDisabledMessage": "El Filtro no está disponible para los Envíos eliminados",
+    "deletedSubmission": {
+      "emptyTable": "No hay envíos eliminados."
+    }
   },
   "fr": {
-    "noMatching": "Il n'y a pas de soumission correspondante."
+    "action": {
+      "testOnDevice": "Tester sur un appareil",
+      "testInBrowser": "Tester dans le naviguateur"
+    },
+    "noMatching": "Il n'y a pas de soumission correspondante.",
+    "downloadDisabled": "Le téléchargement n'est pas possible pour les Soumissions supprimées.",
+    "filterDisabledMessage": "Le filtrage n'est pas possible pour les Soumissions supprimées.",
+    "deletedSubmission": {
+      "emptyTable": "Il n'y a pas de Soumissions supprimées"
+    }
   },
   "id": {
     "noMatching": "Tidak ada Pengiriman yang cocok."
   },
   "it": {
-    "noMatching": "Non sono presenti invii corrispondenti."
+    "action": {
+      "testOnDevice": "Testa sul dispositivo",
+      "testInBrowser": "Testa nel browser"
+    },
+    "noMatching": "Non sono presenti invii corrispondenti.",
+    "downloadDisabled": "Il download non è disponibile per gli invii cancellati",
+    "filterDisabledMessage": "Il filtro non è disponibile per gli invii cancellati.",
+    "deletedSubmission": {
+      "emptyTable": "Non ci sono invii cancellati."
+    }
   },
   "ja": {
     "noMatching": "照合できる提出済フォームはありません。"
